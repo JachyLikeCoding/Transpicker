@@ -1,0 +1,6 @@
+# program_icon.ico    ico图标
+# success_icon.png  运行成功的图标
+# running_icon.png  正在运行时的图标
+# loading_icon.gif  加载时的图标
+# config_icon.png   配置图片
+# error_icon.png    出错时的图片
