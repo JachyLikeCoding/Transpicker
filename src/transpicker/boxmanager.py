@@ -2,20 +2,19 @@ import argparse
 import os
 import sys
 import time
-
 import PyQt5.QtCore as QtCore
 import PyQt5.QtWidgets as QtG
+import matplotlib
 import matplotlib.backends.backend_qt5agg as plt_qtbackend
 import matplotlib.pyplot as plt
-import matplotlib
 import numpy as np
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QFontMetrics
 import boxmanagertoolbar
 import coord_io
-import readimage
+import read_image
 from matplotlib.patches import Rectangle
-from denoise import filter_single_image
+# from denoise import filter_single_image
 
 
 class MyRectangle:
@@ -289,7 +288,7 @@ class MainWindow(QtG.QMainWindow):
                 self.delete_all_patches(self.rectangles)
             else:
                 self.rectangles = []
-            prev_size = readimage.read_width_height(self.current_image_path)
+            prev_size = read_image.read_width_height(self.current_image_path)
             self.current_image_path = os.path.join(self.image_folder, str(filename))
             self.fig.canvas.set_window_title(os.path.basename(self.current_image_path))
             img = self.read_image(self.current_image_path)
@@ -885,13 +884,6 @@ class MainWindow(QtG.QMainWindow):
                          if os.path.isfile(os.path.join(path, f))
                          ]
 
-            # if self.wildcard:
-            #     import fnmatch
-            #     onlyfiles = [
-            #         f for f in sorted(os.listdir(path))
-            #         if fnmatch.fnmatch(f, self.wildcard)
-            #     ]
-
             onlyfiles = [i for i in onlyfiles
                          if not i.startswith(".") and i.endswith((".jpg", ".jpeg", ".png", ".mrc", ".tif", ".tiff"))
                          ]
@@ -1013,7 +1005,7 @@ class MainWindow(QtG.QMainWindow):
 
     def read_image(self, path):
         im_type = self.get_file_type(path)
-        img = readimage.image_read(path)
+        img = read_image.image_read(path)
         img = self.normalize_and_flip(img, im_type)
         return img
 

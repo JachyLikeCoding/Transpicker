@@ -18,7 +18,7 @@ import tqdm
 import numpy as np
 import cv2
 from io import BytesIO
-from transpicker.readimage import read_mrc, image_read
+from transpicker.read_image import read_mrc, image_read
 
 
 class CocoDetection(VisionDataset):

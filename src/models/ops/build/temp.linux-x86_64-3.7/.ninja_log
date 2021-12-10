@@ -1,0 +1,7 @@
+# ninja log v5
+1	2724	1624536129687405731	/home/zhangchi/Deformable-DETR/models/ops/build/temp.linux-x86_64-3.7/home/zhangchi/Deformable-DETR/models/ops/src/cpu/ms_deform_attn_cpu.o	d8542a135ac90746
+0	16994	1624536143947483135	/home/zhangchi/Deformable-DETR/models/ops/build/temp.linux-x86_64-3.7/home/zhangchi/Deformable-DETR/models/ops/src/vision.o	efa7ee2ced283595
+2	2753	1624536442832346789	/home/zhangchi/Deformable-DETR/models/ops/build/temp.linux-x86_64-3.7/home/zhangchi/Deformable-DETR/models/ops/src/cpu/ms_deform_attn_cpu.o	b54ea46a058dccff
+2	16004	1624536456072357954	/home/zhangchi/Deformable-DETR/models/ops/build/temp.linux-x86_64-3.7/home/zhangchi/Deformable-DETR/models/ops/src/vision.o	6a6dec2e68b04e02
+2	2759	1624536736960227383	/home/zhangchi/Deformable-DETR/models/ops/build/temp.linux-x86_64-3.7/home/zhangchi/Deformable-DETR/models/ops/src/cpu/ms_deform_attn_cpu.o	27b2a164d2240cf4
+2	15269	1624536749460208209	/home/zhangchi/Deformable-DETR/models/ops/build/temp.linux-x86_64-3.7/home/zhangchi/Deformable-DETR/models/ops/src/vision.o	989269092ef40bf0

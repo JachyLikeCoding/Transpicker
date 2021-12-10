@@ -4,7 +4,7 @@ import __init__ as ini
 import wx
 import boxmanager
 from gooey import Gooey, GooeyParser
-import config_tools
+# import config_tools
 
 
 def config_configuration_parser(parser_config):

@@ -1,11 +1,8 @@
 
 # ------------------------------------------------------------------------
-# Deformable DETR
+# Modified from Deformable DETR
 # Copyright (c) 2020 SenseTime. All Rights Reserved.
-# Licensed under the Apache License, Version 2.0 [see LICENSE for details]
-# ------------------------------------------------------------------------
-# Modified from DETR (https://github.com/facebookresearch/detr)
-# Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
+# Licensed under the Apache License, Version 2.0 
 # ------------------------------------------------------------------------
 import argparse
 import datetime
@@ -26,7 +23,7 @@ from models import build_model
 
 
 def get_args_parser():
-    parser = argparse.ArgumentParser('Deformable DETR Detector', add_help=False)
+    parser = argparse.ArgumentParser('TransPicker makes particle-picking easy.', add_help=False)
     parser.add_argument('--lr', default=2e-4, type=float)
     parser.add_argument('--lr_backbone_names', default=["backbone.0"], type=str, nargs='+')
     parser.add_argument('--lr_backbone', default=2e-5, type=float)
@@ -39,14 +36,13 @@ def get_args_parser():
     parser.add_argument('--lr_drop_epochs', default=None, type=int, nargs='+')
     parser.add_argument('--clip_max_norm', default=0.1, type=float,
                         help='gradient clipping max norm')
-
     parser.add_argument('--sgd', action='store_true')
 
-    # Variants of Deformable DETR
+    # * Variants of Deformable DETR
     parser.add_argument('--with_box_refine', default=False, action='store_true')
     parser.add_argument('--two_stage', default=False, action='store_true')
 
-    # Model parameters
+    # * Model parameters
     parser.add_argument('--frozen_weights', type=str, default=None,
                         help="Path to the pretrained model. If set, only the mask head will be trained")
 
@@ -103,13 +99,13 @@ def get_args_parser():
     parser.add_argument('--giou_loss_coef', default=2, type=float)
     parser.add_argument('--focal_alpha', default=0.25, type=float)
 
-    # dataset parameters
+    # * dataset parameters
     parser.add_argument('--dataset_file', default='coco')
     parser.add_argument('--coco_path', default='./data/coco', type=str)
     parser.add_argument('--coco_panoptic_path', type=str)
     parser.add_argument('--remove_difficult', action='store_true')
 
-    parser.add_argument('--output_dir', default='./transpicker_outputs',
+    parser.add_argument('--output_dir', default='./outputs',
                         help='path where to save, empty for no saving')
     parser.add_argument('--device', default='cuda',
                         help='device to use for training / testing')
@@ -140,14 +136,14 @@ def main(args):
     np.random.seed(seed)
     random.seed(seed)
 
+    # * build model
     model, criterion, postprocessors = build_model(args)
     model.to(device)
-
     model_without_ddp = model
-
     n_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print('number of params:', n_parameters)
 
+    # * prepare data
     dataset_train = build_dataset(image_set='train', args=args)
     dataset_val = build_dataset(image_set='val', args=args)
 
@@ -162,15 +158,20 @@ def main(args):
         sampler_train = torch.utils.data.RandomSampler(dataset_train)
         sampler_val = torch.utils.data.SequentialSampler(dataset_val)
 
-    batch_sampler_train = torch.utils.data.BatchSampler(
-        sampler_train, args.batch_size, drop_last=True)
+    batch_sampler_train = torch.utils.data.BatchSampler(sampler_train, args.batch_size, drop_last=True)
 
-    data_loader_train = DataLoader(dataset_train, batch_sampler=batch_sampler_train,
-                                   collate_fn=utils.collate_fn, num_workers=args.num_workers,
-                                   pin_memory=True)
-    data_loader_val = DataLoader(dataset_val, args.batch_size, sampler=sampler_val,
-                                 drop_last=False, collate_fn=utils.collate_fn, num_workers=args.num_workers,
-                                 pin_memory=True)
+    data_loader_train = DataLoader(dataset_train, 
+                                    batch_sampler=batch_sampler_train,
+                                    collate_fn=utils.collate_fn, 
+                                    num_workers=args.num_workers,
+                                    pin_memory=True)
+    data_loader_val = DataLoader(dataset_val, 
+                                    args.batch_size, 
+                                    sampler=sampler_val,
+                                    drop_last=False, 
+                                    collate_fn=utils.collate_fn, 
+                                    num_workers=args.num_workers,
+                                    pin_memory=True)
 
     print('dataset_train:', dataset_train)
     print('dataset_val:', dataset_val)
@@ -191,15 +192,23 @@ def main(args):
         {
             "params":
                 [p for n, p in model_without_ddp.named_parameters()
-                 if not match_name_keywords(n, args.lr_backbone_names) and not match_name_keywords(n, args.lr_linear_proj_names) and p.requires_grad],
+                 if not match_name_keywords(n, args.lr_backbone_names) 
+                    and not match_name_keywords(n, args.lr_linear_proj_names) 
+                    and p.requires_grad],
             "lr": args.lr,
         },
         {
-            "params": [p for n, p in model_without_ddp.named_parameters() if match_name_keywords(n, args.lr_backbone_names) and p.requires_grad],
+            "params": 
+                [p for n, p in model_without_ddp.named_parameters() 
+                if match_name_keywords(n, args.lr_backbone_names) 
+                    and p.requires_grad],
             "lr": args.lr_backbone,
         },
         {
-            "params": [p for n, p in model_without_ddp.named_parameters() if match_name_keywords(n, args.lr_linear_proj_names) and p.requires_grad],
+            "params": 
+                [p for n, p in model_without_ddp.named_parameters() 
+                if match_name_keywords(n, args.lr_linear_proj_names) 
+                    and p.requires_grad],
             "lr": args.lr * args.lr_linear_proj_mult,
         }
     ]
@@ -209,6 +218,7 @@ def main(args):
     else:
         optimizer = torch.optim.AdamW(param_dicts, lr=args.lr,
                                       weight_decay=args.weight_decay)
+
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, args.lr_drop)
 
     if args.distributed:
@@ -258,9 +268,8 @@ def main(args):
             args.start_epoch = checkpoint['epoch'] + 1
         # check the resumed model
         if not args.eval:
-            test_stats, coco_evaluator = evaluate(
-                model, criterion, postprocessors, data_loader_val, base_ds, device, args.output_dir
-            )
+            test_stats, coco_evaluator = evaluate(model, criterion, postprocessors, 
+                                                data_loader_val, base_ds, device, args.output_dir)
 
     if args.eval:
         test_stats, coco_evaluator = evaluate(model, criterion, postprocessors,
@@ -269,16 +278,17 @@ def main(args):
             utils.save_on_master(coco_evaluator.coco_eval["bbox"].eval, output_dir / "eval.pth")
         return
 
-    print(">>>>>>>>> Start training")
+    print(">>>>>>>>> Start training >>>>>>>>>>")
     start_time = time.time()
     print('start_epoch: ', args.start_epoch)
     print('epochs: ', args.epochs)
+
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
             sampler_train.set_epoch(epoch)
-        train_stats = train_one_epoch(
-            model, criterion, data_loader_train, optimizer, device, epoch, args.clip_max_norm)
+        train_stats = train_one_epoch(model, criterion, data_loader_train, optimizer, device, epoch, args.clip_max_norm)
         lr_scheduler.step()
+
         if args.output_dir:
             checkpoint_paths = [output_dir/'checkpoint.pth']
             # extra checkpoint before LR drop and every 5 epochs
@@ -293,9 +303,8 @@ def main(args):
                     'args': args,
                 }, checkpoint_path)
 
-        test_stats, coco_evaluator = evaluate(
-            model, criterion, postprocessors, data_loader_val, base_ds, device, args.output_dir
-        )
+        test_stats, coco_evaluator = evaluate(model, criterion, postprocessors, 
+                                            data_loader_val, base_ds, device, args.output_dir)
 
         log_stats = {**{f'train_{k}': v for k, v in train_stats.items()},
                      **{f'test_{k}': v for k, v in test_stats.items()},
@@ -323,7 +332,7 @@ def main(args):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser('Deformable DETR training and evaluation script', parents=[get_args_parser()])
+    parser = argparse.ArgumentParser('crDETR training and evaluation script', parents=[get_args_parser()])
     args = parser.parse_args()
     if args.output_dir:
         Path(args.output_dir).mkdir(parents=True, exist_ok=True)

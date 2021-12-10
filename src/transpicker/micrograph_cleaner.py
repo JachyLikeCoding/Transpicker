@@ -8,7 +8,7 @@ import cv2
 import mrcfile
 import numpy as np
 import os
-from transpicker.readimage import read_mrc, image_read
+from transpicker.read_image import read_mrc, image_read
 import matplotlib.pyplot as plt
 
 

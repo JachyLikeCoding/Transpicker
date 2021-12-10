@@ -435,8 +435,7 @@ class PostProcess(nn.Module):
 
 
 class MLP(nn.Module):
-    """ Very simple multi-layer perceptron (also called FFN)"""
-
+    """also called FFN"""
     def __init__(self, input_dim, hidden_dim, output_dim, num_layers):
         super().__init__()
         self.num_layers = num_layers
@@ -450,7 +449,7 @@ class MLP(nn.Module):
 
 
 def build(args):
-    num_classes = 91 #if args.dataset_file != 'coco' else 91
+    num_classes = 91
     if args.dataset_file == "coco_panoptic":
         num_classes = 91
     elif args.dataset_file == "cococryo":
@@ -458,7 +457,6 @@ def build(args):
     device = torch.device(args.device)
 
     backbone = build_backbone(args)
-
     transformer = build_deformable_transformer(args)
     model = DeformableDETR(
         backbone,
@@ -472,7 +470,6 @@ def build(args):
     )
 
     print('-----------------------------deformable_detr model: -----------------------\n', model)
-    print('------------------------------------------------------------------------------')
     if args.masks:
         model = DETRsegm(model, freeze_detr=(args.frozen_weights is not None))
     matcher = build_matcher(args)
@@ -483,7 +480,6 @@ def build(args):
         weight_dict["loss_mask"] = args.mask_loss_coef
         weight_dict["loss_dice"] = args.dice_loss_coef
 
-    # TODO this is a hack
     if args.aux_loss:
         aux_weight_dict = {}
         for i in range(args.dec_layers - 1):
@@ -494,10 +490,12 @@ def build(args):
     losses = ['labels', 'boxes', 'cardinality']
     if args.masks:
         losses += ["masks"]
+
     # num_classes, matcher, weight_dict, losses, focal_alpha=0.25
     criterion = SetCriterion(num_classes, matcher, weight_dict, losses, focal_alpha=args.focal_alpha)
     criterion.to(device)
     postprocessors = {'bbox': PostProcess()}
+
     if args.masks:
         postprocessors['segm'] = PostProcessSegm()
         if args.dataset_file == "coco_panoptic":
