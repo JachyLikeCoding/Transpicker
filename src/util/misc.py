@@ -12,18 +12,39 @@ Misc functions, including distributed helpers.
 
 Mostly copy-paste from torchvision references.
 """
-import os
+import os, sys
 import subprocess
 import time
-from collections import defaultdict, deque
-import datetime
 import pickle
-from typing import Optional, List
-
+import datetime
 import torch
 import torch.nn as nn
 import torch.distributed as dist
+from typing import Optional, List
+from collections import defaultdict, deque
+from datetime import datetime as dt
 from torch import Tensor
+
+_verbose = False
+
+def log(msg):
+    print('{}     {}'.format(dt.now().strftime('%Y-%m-%d %H:%M:%S'), msg))
+    sys.stdout.flush()
+
+def vlog(msg):
+    if _verbose:
+        print('{}     {}'.format(dt.now().strftime('%Y-%m-%d %H:%M:%S'), msg))
+        sys.stdout.flush()
+
+def flog(msg, outfile):
+    msg = '{}     {}'.format(dt.now().strftime('%Y-%m-%d %H:%M:%S'), msg)
+    print(msg)
+    sys.stdout.flush()
+    try:
+        with open(outfile,'a') as f:
+            f.write(msg+'\n')
+    except Exception as e:
+        log(e)
 
 # needed due to empty tensor bug in pytorch and torchvision 0.5
 import torchvision
@@ -342,7 +363,6 @@ class NestedTensor(object):
         self.mask = mask
 
     def to(self, device, non_blocking=False):
-        # type: (Device) -> NestedTensor # noqa
         cast_tensor = self.tensors.to(device, non_blocking=non_blocking)
         mask = self.mask
         if mask is not None:

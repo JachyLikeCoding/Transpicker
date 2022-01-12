@@ -143,16 +143,16 @@ def get_args_parser():
 
     # dataset parameters
     parser.add_argument('--dataset_file', default='cococryo')
-    parser.add_argument('--coco_path', default='/home/zhangchi/cryodata/empiar10406', type=str)
+    parser.add_argument('--coco_path', default='./data/empiar10028', type=str)
     parser.add_argument('--coco_panoptic_path', type=str)
     parser.add_argument('--remove_difficult', action='store_true')
 
-    parser.add_argument('--output_dir', default='./transpicker_outputs/my_outputs_10406_denoised_ciouloss_0901/step_star_compare/',
+    parser.add_argument('--output_dir', default='./outputs/empiar10028_outputs/step_star_compare/',
                         help='path where to save, empty for no saving')
     parser.add_argument('--device', default='cuda',
                         help='device to use for training / testing')
-    parser.add_argument('--seed', default=42, type=int)
-    parser.add_argument('--resume', default='./transpicker_outputs/my_outputs_10406_denoised_ciouloss_0901/checkpoint0069.pth',
+    parser.add_argument('--seed', default=27, type=int)
+    parser.add_argument('--resume', default='./outputs/empiar10028_outputs/checkpoint0059.pth',
                         help='resume from checkpoint')
     parser.add_argument('--start_epoch', default=0, type=int, metavar='N',
                         help='start epoch')
@@ -161,7 +161,7 @@ def get_args_parser():
 
     parser.add_argument('--num_workers', default=2, type=int)
     parser.add_argument('--cache_mode', default=False, action='store_true', help='whether to cache images on memory')
-    parser.add_argument('--imgs_dir', default='/home/zhangchi/cryodata/empiar10406/val/', type=str,
+    parser.add_argument('--imgs_dir', default='./data/empiar10028/val/', type=str,
                         help='input images folder for inference')
 
     return parser

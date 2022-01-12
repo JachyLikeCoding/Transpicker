@@ -1,27 +1,26 @@
+'''
+Test the influence of label integrity on experimental results
+'''
 import os
 import csv
 import cv2
 import json
+
+import random
 import argparse
 import numpy as np
-from utils import BoundBox
-from read_image import image_read, read_width_height, image_write
+import sys
+sys.path.append(os.path.dirname(sys.path[0]))
+sys.path.append("/home/zhangchi/transpicker/Transpicker/src")
+from transpicker.utils import BoundBox
+from transpicker.read_image import image_read, read_width_height, image_write
+from transpicker.coord_io import read_eman_boxfile, read_star_file
 
 
-
-def get_args_parser():
-    parser = argparse.ArgumentParser('TransPicker', add_help=False)
-    parser.add_argument('--coco_path', default='./data/empiar10028/', type=str)
-    parser.add_argument('--images_path', default='./data/empiar10028/micrographs/', type=str)
-    parser.add_argument('--phase', default='train', type=str)
-    parser.add_argument('--box_width', default=200, type=int)
-    return parser
-
-
-def make_coco_dataset(root_path, image_path, box_width=200, phase='train'):
+def make_coco_dataset_test_label(root_path, image_path, box_width=200, percent=100, phase='train'):
     """Make coco-style dataset. """
-    if not os.path.exists(os.path.join(root_path, phase)):
-        os.makedirs(os.path.join(root_path, phase))
+    if not os.path.exists(os.path.join(root_path, phase+'_percent'+str(percent))):
+        os.makedirs(os.path.join(root_path, phase+'_percent'+str(percent)))
 
     dataset = {'categories': [], 'images': [], 'annotations': []}
     classes = ['particle']
@@ -39,11 +38,16 @@ def make_coco_dataset(root_path, image_path, box_width=200, phase='train'):
     for index in indexes:
         if index.startswith(".") or os.path.isdir(image_path + index):
             indexes.remove(index)
-
+    
     if phase == 'train':
+        random.seed(10)
+        sample_num = int(percent * 0.01 * split)
         indexes = [line for i, line in enumerate(indexes) if i <= split]
+        indexes = random.sample(indexes, sample_num)
+        print(f'percent {percent} {phase} dataset has {len(indexes)} micrographs................')
     elif phase == 'val':
         indexes = [line for i, line in enumerate(indexes) if i > split]
+        print(f'percent {percent} {phase} dataset has {len(indexes)} micrographs................')
 
     for index in indexes:
         if index.endswith('.mrc'):
@@ -55,10 +59,10 @@ def make_coco_dataset(root_path, image_path, box_width=200, phase='train'):
             image = (image - mean) / sd
             image[image > 3] = 3
             image[image < -3] = -3
-            image_write(f'{root_path}/{phase}/{index[:-4]}.jpg', image)
+            image_write(f'{root_path}/{phase}_percent{percent}/{index[:-4]}.jpg', image)
 
         elif index.endswith(('.jpg', '.png')):
-            os.system(f"cp {image_path}/{index} {root_path}/{phase}/")
+            os.system(f"cp {image_path}/{index} {root_path}/{phase}_percent{percent}/")
 
         else:
             raise Exception(f"{image_path}/{index} is not supported image format.")
@@ -106,21 +110,17 @@ def make_coco_dataset(root_path, image_path, box_width=200, phase='train'):
     folder = os.path.join(root_path, 'annotations')
     if not os.path.exists(folder):
         os.makedirs(folder)
-    json_name = os.path.join(root_path, 'annotations/instances_{}.json'.format(phase))
+    json_name = os.path.join(root_path, f'annotations/instances_{phase}_percent{percent}.json')
     print("json_name:", json_name)
     with open(json_name, 'w') as f:
         json.dump(dataset, f)
 
 
-def main(args):
-    print(args)
-    make_coco_dataset(args.coco_path, args.images_path, box_width=args.box_width, phase=args.phase)
-    make_coco_dataset(args.coco_path, args.images_path, box_width=args.box_width, phase='val')
-
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser('Cryococo dataset preperation script', parents=[get_args_parser()])
-    args = parser.parse_args()
-    main(args)
+    root_path = '/home/zhangchi/transpicker/Transpicker/data/empiar10028/'
+    image_path = '/home/zhangchi/transpicker/Transpicker/data/empiar10028/micrographs/'
+    label_percent = [20, 40, 60, 80, 100] # percent of labels to use
 
-# python make_coco_dataset.py
+    for percent in label_percent:
+        make_coco_dataset_test_label(root_path, image_path, box_width=200, percent=percent, phase='train')

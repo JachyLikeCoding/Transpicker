@@ -4,6 +4,9 @@ import cv2
 import csv
 import numpy as np
 from PIL import Image
+sys.path.append("/home/zhangchi/transpicker/Transpicker/src/transpicker")
+sys.path.append(os.path.dirname(sys.path[0]))
+
 from utils import BoundBox
 
 curPath = os.path.abspath(os.path.dirname(__file__))

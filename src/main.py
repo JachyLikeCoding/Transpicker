@@ -5,14 +5,14 @@
 # Licensed under the Apache License, Version 2.0 
 # ------------------------------------------------------------------------
 import argparse
-import datetime
 import json
 import random
 import time
-import os
+import os,sys
 import torch
 from pathlib import Path
 import numpy as np
+from datetime import datetime as dt
 from torch.utils.data import DataLoader
 import datasets
 import util.misc as utils
@@ -20,6 +20,9 @@ import datasets.samplers as samplers
 from datasets import build_dataset, get_coco_api_from_dataset
 from engine import evaluate, train_one_epoch
 from models import build_model
+
+log = utils.log
+vlog = utils.vlog
 
 
 def get_args_parser():
@@ -100,8 +103,8 @@ def get_args_parser():
     parser.add_argument('--focal_alpha', default=0.25, type=float)
 
     # * dataset parameters
-    parser.add_argument('--dataset_file', default='coco')
-    parser.add_argument('--coco_path', default='./data/coco', type=str)
+    parser.add_argument('--dataset_file', default='cococryo')
+    parser.add_argument('--coco_path', default='./data/cococryo', type=str)
     parser.add_argument('--coco_panoptic_path', type=str)
     parser.add_argument('--remove_difficult', action='store_true')
 
@@ -109,24 +112,41 @@ def get_args_parser():
                         help='path where to save, empty for no saving')
     parser.add_argument('--device', default='cuda',
                         help='device to use for training / testing')
-    parser.add_argument('--seed', default=42, type=int)
+    parser.add_argument('--seed', default=27, type=int)
     parser.add_argument('--resume', default='', help='resume from checkpoint')
     parser.add_argument('--start_epoch', default=0, type=int, metavar='N',
                         help='start epoch')
     parser.add_argument('--eval', action='store_true')
     parser.add_argument('--num_workers', default=2, type=int)
-    parser.add_argument('--cache_mode', default=False, action='store_true', help='whether to cache images on memory')
+    parser.add_argument('--cache_mode', default=False, action='store_true',
+                        help='whether to cache images on memory')
+    parser.add_argument('--label_percent', default=100, type=int, 
+                        help='label percent')
+    parser.add_argument('--image_percent', default=100, type=int,
+                        help='image percent')
 
     return parser
 
 
 def main(args):
+    t1 = dt.now()
+    LOG = f'{args.output_dir}/run.log'
+
+    def flog(msg):
+        return utils.flog(msg, LOG)
+    
+    flog(' '.join(sys.argv))
+    flog(args)
+
     utils.init_distributed_mode(args)
-    print("git:\n  {}\n".format(utils.get_sha()))
+    flog("git:\n  {}\n".format(utils.get_sha()))
 
     if args.frozen_weights is not None:
         assert args.masks, "Frozen training is meant for segmentation only"
     print(args)
+
+    use_cuda = torch.cuda.is_available()
+    flog('Use cuda {}'.format(use_cuda))
 
     device = torch.device(args.device)
 
@@ -137,13 +157,17 @@ def main(args):
     random.seed(seed)
 
     # * build model
+    flog(f'Build model:')
     model, criterion, postprocessors = build_model(args)
     model.to(device)
+
     model_without_ddp = model
+
     n_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    print('number of params:', n_parameters)
+    flog(f'number of params: {n_parameters}')
 
     # * prepare data
+    flog(f'Loading dataset from {args.coco_path}')
     dataset_train = build_dataset(image_set='train', args=args)
     dataset_val = build_dataset(image_set='val', args=args)
 
@@ -173,8 +197,8 @@ def main(args):
                                     num_workers=args.num_workers,
                                     pin_memory=True)
 
-    print('dataset_train:', dataset_train)
-    print('dataset_val:', dataset_val)
+    flog(f'dataset_train: {dataset_train}')
+    flog(f'dataset_val: {dataset_val}')
     lr_backbone_names = ["backbone.0", "backbone.neck", "input_proj", "transformer.encoder"]
 
     def match_name_keywords(n, name_keywords):
@@ -237,6 +261,7 @@ def main(args):
         model_without_ddp.detr.load_state_dict(checkpoint['model'])
 
     output_dir = Path(args.output_dir)
+
     if args.resume:
         if args.resume.startswith('https'):
             checkpoint = torch.hub.load_state_dict_from_url(
@@ -278,12 +303,13 @@ def main(args):
             utils.save_on_master(coco_evaluator.coco_eval["bbox"].eval, output_dir / "eval.pth")
         return
 
-    print(">>>>>>>>> Start training >>>>>>>>>>")
+    flog("\n>>>>>>>>>>>>>>>>>>>>> Start training >>>>>>>>>>>>>>>>>>>>>>")
     start_time = time.time()
     print('start_epoch: ', args.start_epoch)
     print('epochs: ', args.epochs)
 
     for epoch in range(args.start_epoch, args.epochs):
+        flog("===========================This is the training epoch: " + str(epoch) + "================================")
         if args.distributed:
             sampler_train.set_epoch(epoch)
         train_stats = train_one_epoch(model, criterion, data_loader_train, optimizer, device, epoch, args.clip_max_norm)
@@ -327,8 +353,8 @@ def main(args):
                                    output_dir / "eval" / name)
 
     total_time = time.time() - start_time
-    total_time_str = str(datetime.timedelta(seconds=int(total_time)))
-    print('Training time {}'.format(total_time_str))
+    total_time_str = str(dt.timedelta(seconds=int(total_time)))
+    flog('Training time {} ({} per epoch)'.format(total_time_str, total_time_str/(args.epochs - args.start_epoch)))
 
 
 if __name__ == '__main__':

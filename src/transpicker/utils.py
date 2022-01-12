@@ -1,11 +1,10 @@
-import numpy as np
 import sys
-import urllib.request
 import json
-from sklearn import mixture
-from enum import Enum
+import numpy as np
+import urllib.request
 import multiprocessing
-
+from enum import Enum
+from sklearn import mixture
 
 class BoundBox:
     """
@@ -279,4 +278,3 @@ def write_command(filename, commands):
     text_file = open(filename, "w")
     text_file.write(commands)
     text_file.close()
-
