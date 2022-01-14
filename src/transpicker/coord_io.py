@@ -128,3 +128,17 @@ def read_star_file(path, box_width):
         bound_box = BoundBox(x=box[0] - box_width / 2, y=box[1] - box_width / 2, w=box_width, h=box_width)
         boxes.append(bound_box)
     return boxes
+
+# just for test how label percent affect the prediction results.
+def read_percent_star_file(path, box_width, percent=100):
+    from random import sample
+    header_names, skip_indices = get_star_file_header(path)
+    boxreader = np.atleast_2d(np.genfromtxt(path, skip_header=skip_indices))
+    boxes = []
+    for box in boxreader:
+        bound_box = BoundBox(x=box[0] - box_width / 2, y=box[1] - box_width / 2, w=box_width, h=box_width)
+        boxes.append(bound_box)
+    box_num = int(len(boxes) * percent * 0.01)
+    print(f'Before sample: {len(boxes)} boxes total.')
+    boxes = sample(boxes,  box_num)
+    print(f'After sample: {len(boxes)} boxes are chosen.')

@@ -11,15 +11,23 @@ from split_image import split_train_val_images
 
 
 def get_args_parser():
-    parser = argparse.ArgumentParser('Deformable DETR Detector', add_help=False)
-    parser.add_argument('--split', default=False, type=bool)
-    parser.add_argument('--is_equal_hist', default=True, type=bool)
-    parser.add_argument('--denoise_model', default='bi_filter', type=str)
-    parser.add_argument('--root_dir', default='./data/empiar10028/', type=str)
-    parser.add_argument('--split_num', default=2, type=int)
-    parser.add_argument('--split_gap', default=200, type=int)
-    parser.add_argument('--iou_threshold', default=0.4, type=float)
-    parser.add_argument('--ext', default='.mrc', type=str)
+    parser = argparse.ArgumentParser('Transpicker preprocessing', add_help=False)
+    parser.add_argument('--split', default=False, type=bool, 
+                    help='If need split the micrographs and the responding annotations. No more than 200 particles are recommended for each micrograph patch.')
+    parser.add_argument('--is_equal_hist', default=True, type=bool,
+                    help='If need do histogram equalization. Default is True.')
+    parser.add_argument('--denoise_model', default='bi_filter', type=str, choices=('n2n','lowpass','gaussian','nlm','bi_filter'),
+                    help='Choose a denoise model.')
+    parser.add_argument('--root_dir', default='./data/empiar10028/', type=str,
+                    help='Path to dataset.')
+    parser.add_argument('--split_num', default=2, type=int,
+                    help='The number of patches you want to split in each row and column.')
+    parser.add_argument('--split_gap', default=200, type=int,
+                    help='The overlap that needs to be left for segmentation. The recommended size of the interval is slightly larger than the particle diameter.')
+    parser.add_argument('--iou_threshold', default=0.4, type=float,
+                    help='bbox less than this threshold will not be saved.')
+    parser.add_argument('--ext', default='.mrc', type=str,
+                    help='The extention of micrograph file type.')
 
     return parser
 
@@ -55,7 +63,7 @@ def NLMeans_denoise(image):
 def equal_hist(image):
     gray = (image * 255).astype(np.uint8)
     gray = np.array(gray)
-    print(gray)
+    # print(gray)
     equal_hist_image = cv2.equalizeHist(gray)
 
     return equal_hist_image
@@ -75,7 +83,7 @@ def preprocess(image_path, output_path, is_equal_hist=True, denoise_model=None):
     # equal hist to enhance the micrograph
     if is_equal_hist:
         image = equal_hist(image)
-    print(image.dtype)
+    # print(image.dtype)
     # denoise the micrograph
     if denoise_model == 'lowpass':
         image = lowpass_filter(image)
@@ -109,7 +117,6 @@ def preprocess_images(coco_dir, has_annots=True):
             os.makedirs(output_annot_dir)
         if not os.path.exists(output_images_dir):
             os.makedirs(output_images_dir)
-        print(coco_dir)
 
         for sub_dir in os.listdir(coco_dir):
             if os.path.isdir(coco_dir + sub_dir) and not sub_dir.startswith("pre"):
@@ -205,7 +212,7 @@ def main(args):
 
     for image in os.listdir(image_dir):
         image_path = image_dir + image
-        print(f'preprocess {image} now...')
+        print(f'......Preprocess {image} now......')
         preprocess(image_path, output_dir, is_equal_hist=args.is_equal_hist, denoise_model=args.denoise_model)
 
 

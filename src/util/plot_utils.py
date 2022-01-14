@@ -72,7 +72,7 @@ def plot_logs(logs, fields=('class_error', 'loss_bbox_unscaled', 'mAP'), ewm_col
                 coco_eval = pd.DataFrame(
                     np.stack(df.test_coco_eval_bbox.dropna().values)[:, 1]
                 ).ewm(com=ewm_col).mean()
-                axs[j].plot(coco_eval, c=color, linewidth=2)
+                axs[j].plot(coco_eval, c=color, linewidth=1)
             else:
                 df.interpolate().ewm(com=ewm_col).mean().plot(
                     y=['train_{}'.format(field), 'test_{}'.format(field)],
@@ -95,7 +95,6 @@ def plot_logs(logs, fields=('class_error', 'loss_bbox_unscaled', 'mAP'), ewm_col
 
 def plot_logs_compare(logs, fields=('class_error', 'loss_bbox_unscaled', 'mAP'), ewm_col=0, log_name='log.txt'):
     func_name = "plot_utils.py::plot_logs"
-
     # verify logs is a list of Paths (list[Paths]) or single Pathlib object Path,
     # convert single Path to list to avoid 'not iterable' error
 
@@ -123,13 +122,13 @@ def plot_logs_compare(logs, fields=('class_error', 'loss_bbox_unscaled', 'mAP'),
     # print(dfs)
 
     fig, axs = plt.subplots(ncols=len(fields), figsize=(10, 4))
-    labels = ['EMPIAR-10028','EMPIAR-10590','EMPIAR-10406','EMPIAR-10096','EMPIAR-10093','EMPIAR-10017']
+    labels = ['EMPIAR-10028-20','EMPIAR-10028-40','EMPIAR-10028-60','EMPIAR-10028-80','EMPIAR-10028-100','EMPIAR-10028']
     for df, color, log in zip(dfs, sns.color_palette(n_colors=len(logs)), labels):#['EMPIAR-10028','EMPIAR-10590','EMPIAR-10406','EMPIAR-10096','EMPIAR-10093','EMPIAR-10017']):
         for j, field in enumerate(fields):
             if field == 'mAP':
                 coco_eval = pd.DataFrame(
                     np.stack(df.test_coco_eval_bbox.dropna().values)[:, 1]).ewm(com=ewm_col).mean()
-                axs[j].plot(coco_eval*1.05, color=color, label=log, linewidth=2)
+                axs[j].plot(coco_eval*1.05, color=color, label=log, linewidth=1)
                 axs[j].legend(fontsize=8)
                 axs[j].set_xlim(0, 60)
                 axs[j].set_ylim(0, 0.8)
@@ -143,14 +142,14 @@ def plot_logs_compare(logs, fields=('class_error', 'loss_bbox_unscaled', 'mAP'),
                     ax=axs[j],
                     color=[color] * 2,
                     style=['-', '--'],
-                    linewidth=3,
+                    linewidth=1,
                     label=[f'{log}[Train]',f'{log}[Test]'],
                 )
                 axs[j].set_xlabel('Epochs')
                 axs[j].set_xlim(0, 60)
                 axs[j].set_ylabel('Bbox Loss')
 
-    plt.savefig("/home/zhangchi/Deformable-DETR/transpicker_outputs/log_compare13.png",dpi=300)
+    plt.savefig("./outputs/log_compare_data_percent.png",dpi=300)
 
 
 def plot_precision_recall(files, naming_scheme='iter'):
@@ -240,8 +239,8 @@ def plot_pr_compares(naming_scheme='iter'):
             'f1={}'.format(round(2 * prec * rec / (prec + rec + 1e-8), 3))
             )
         print('log:', log)
-        axs[0].plot(recall, precision, c=color, label=log, linewidth=3)
-        axs[1].plot(recall, scores, c=color, label=log, linewidth=3)
+        axs[0].plot(recall, precision, c=color, label=log, linewidth=1)
+        axs[1].plot(recall, scores, c=color, label=log, linewidth=1)
         axs[0].legend()
         axs[1].legend()
     
@@ -297,6 +296,19 @@ def main_compare():
     plot_logs_compare(logs,  fields=('loss_bbox_unscaled', 'mAP'))
     # plot_pr_compares()
 
+def compare_data_percent():
+    from matplotlib import rc
+    import matplotlib
+    log_dir1 = "./outputs/empiar10028_outputs_20/"
+    log_dir2 = "./outputs/empiar10028_outputs_40/"
+    log_dir3 = "./outputs/empiar10028_outputs_60/"
+    log_dir4 = "./outputs/empiar10028_outputs_80/"
+    log_dir5 = "./outputs/empiar10028_outputs_100/"
+    log_dir6 = "./outputs/empiar10028_outputs/"
+
+    logs = [log_dir1, log_dir2, log_dir3, log_dir4, log_dir5, log_dir6]
+    plot_logs_compare(logs,  fields=('loss_bbox_unscaled', 'mAP'))
+
 
 def compare_ciou_giou():
     import matplotlib
@@ -316,5 +328,6 @@ if __name__ == "__main__":
     # plt.style.use('ggplot')
     # log_dir = "/home/zhangchi/Deformable-DETR/transpicker_outputs/my_outputs_10406_denoised_ciouloss_0901/"
     # main(log_dir)
-    main_compare()
+    # main_compare()
     # compare_ciou_giou()
+    compare_data_percent()
