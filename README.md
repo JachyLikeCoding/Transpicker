@@ -19,6 +19,7 @@ If you find TransPicker useful in your research, please consider citing:
 In order to run the TransPicker we need to install all required packages.
 This can be done by creating a virtual environment with `python3 -m venv env` and activating it with `source ./env/bin/activate`. Once the virtual Python environment is activated, the required packages can be installed with pip using `pip install -r requirements.txt`.
 
+You can also run the `conda env create -f transpicker_environment.yml` to restore the environment.
 
 ## Usage
 To get a complete description of usage execute
@@ -42,7 +43,7 @@ code_root/
 
 You can name your own dataset in other ways, but the `micrographs` and `annots` sub directory should be metained (or change the source code).
 ### Make coco-style dataset for training and testing
-Then you can run `python make_coco_dataset.py` to get coco-style datasets as following:
+Then you can run `python make_coco_dataset.py` in the 'src/transpicker' path to get coco-style datasets as following:
 ```
 code_root/
 └── data/
@@ -111,3 +112,9 @@ If you want to use GUI to display the micrographs and choose better thresholds, 
 > python boxmanager.py
 
 to activate the GUI panel.
+
+
+## Contact
+If you have any questions or require any further information, welcome to contact me.
+
+Email: chizhang_cs@zju.edu.cn
