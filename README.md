@@ -4,13 +4,8 @@ This repository is an official implementation of the paper:
 Transpicker: a transformer-based particle picking framework for cryoEM images.
 
 ## Introduction
-A 2D particle picker for cryoEM micrographs.
-### Abstract
+A 2D particle picker for cryo-EM micrographs.
 
-## License
-
-## Citing TransPicker
-If you find TransPicker useful in your research, please consider citing:
 
 ## Installation
 ### Requirements
@@ -113,6 +108,18 @@ If you want to use GUI to display the micrographs and choose better thresholds, 
 
 to activate the GUI panel.
 
+## Citing TransPicker
+If you find TransPicker useful in your research, please consider citing:
+```
+@inproceedings{zhang2021transpicker,
+  title={TransPicker: a transformer-based framework for particle picking in cryoEM micrographs},
+  author={Zhang, Chi and Li, Hongjia and Wan, Xiaohua and Chen, Xuemei and Yang, Zhenghe and Feng, Jieqing and Zhang, Fa},
+  booktitle={2021 IEEE International Conference on Bioinformatics and Biomedicine (BIBM)},
+  pages={1179--1184},
+  year={2021},
+  organization={IEEE}
+}
+```
 
 ## Contact
 If you have any questions or require any further information, welcome to contact me.
